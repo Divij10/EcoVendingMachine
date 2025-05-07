@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EcoPoints Hub</title>
+
+  <!-- Swift‑flavoured UIkit (CDN) -->
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/uikit@3.19.3/dist/css/uikit.min.css" />
+  <script defer
+          src="https://cdn.jsdelivr.net/npm/uikit@3.19.3/dist/js/uikit.min.js"></script>
+  <script defer
+          src="https://cdn.jsdelivr.net/npm/uikit@3.19.3/dist/js/uikit-icons.min.js"></script>
+
+  <!-- Chart.js (CDN) -->
+  <script defer
+          src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <!-- Custom “Swift” palette -->
+  <style>
+    /* === ECO‑VENDING PROTOTYPE COLOURS =================================== */
+:root{
+  --lime:   #bff240;   /* body + card backgrounds              */
+  --teal:   #008c9e;   /* navbar + headings + borders          */
+  --orange: #ff7b2e;   /* call‑to‑action buttons / highlights  */
+  --purple: #c883ff;   /* accent (badges etc.)                 */
+  --paper:  #f1f5f3;   /* page background                      */
+}
+
+/* page background ---------------------------------------------------- */
+body{background:var(--paper) !important;}
+
+/* navbar ------------------------------------------------------------- */
+.uk-navbar-container{
+  background:var(--teal) !important;
+}
+.uk-navbar-container .uk-navbar-nav>li>a,
+.uk-navbar-container .uk-logo{
+  color:#fff !important;            /* visible on teal */
+}
+.uk-navbar-item:hover,
+.uk-navbar-nav>li>a:hover{
+  color:var(--lime) !important;     /* fun hover tint  */
+}
+
+/* primary buttons ---------------------------------------------------- */
+.uk-button-primary{
+  background:var(--orange) !important;
+  border:none !important;
+  color:#fff !important;
+}
+.uk-button-primary:hover{
+  filter:brightness(1.1);
+}
+
+/* cards -------------------------------------------------------------- */
+.uk-card-default,
+.uk-card-primary{
+  background:var(--lime) !important;
+  color:#000 !important;
+  border:2px solid var(--teal) !important;
+}
+
+/* muted sections (eg. leaderboard bg) -------------------------------- */
+.uk-section-muted{
+  background:rgba(0,140,158,.08) !important;
+}
+
+/* inputs focus ring -------------------------------------------------- */
+#scan-form input:focus{
+  border-color:var(--teal) !important;
+  box-shadow:0 0 0 3px rgba(0,140,158,.35);
+}
+
+/* misc accents ------------------------------------------------------- */
+#points,#co2,#plastics{color:var(--orange) !important;}
+::selection{background:var(--purple);color:#000;}
+
+  </style>
+</head>
+
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="uk-navbar-container uk-navbar" uk-navbar>
+    <div class="uk-navbar-left">
+      <a class="uk-navbar-item uk-logo" href="#">
+        <span uk-icon="icon: bolt; ratio:1.2"></span>&nbsp;EcoPoints Hub
+      </a>
+    </div>
+    <div class="uk-navbar-right">
+      <ul class="uk-navbar-nav uk-visible@m">
+        <li><a href="#impact">Impact</a></li>
+        <li><a href="#leader">Leaderboard</a></li>
+        <li><a href="#rewards">Rewards</a></li>
+      </ul>
+      <a class="uk-button uk-button-primary uk-margin-small-right" href="#scan" uk-scroll>
+        Scan QR
+      </a>
+    </div>
+  </nav>
+
+  <!-- HERO / DASHBOARD -->
+  <section class="uk-section">
+    <div class="uk-container uk-text-center">
+      <h2 class="uk-heading-medium">Welcome, Sustainability Star! 🌎</h2>
+      <p class="uk-text-lead">Track your reusable‑item activity and climb the leaderboard.</p>
+
+      <div class="uk-grid-small uk-child-width-expand@s" uk-grid>
+        <div>
+          <div class="uk-card uk-card-default uk-card-body">
+            <h3 class="uk-card-title">Your EcoPoints</h3>
+            <span id="points" class="uk-text-bold uk-text-large">120</span>
+          </div>
+        </div>
+        <div>
+          <div class="uk-card uk-card-default uk-card-body">
+            <h3 class="uk-card-title">CO₂ Saved (kg)</h3>
+            <span id="co2" class="uk-text-bold uk-text-large">6.3</span>
+          </div>
+        </div>
+        <div>
+          <div class="uk-card uk-card-default uk-card-body">
+            <h3 class="uk-card-title">Plastics Diverted</h3>
+            <span id="plastics" class="uk-text-bold uk-text-large">42</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCAN SECTION -->
+  <section id="scan" class="uk-section uk-section-small uk-section-muted">
+    <div class="uk-container">
+      <h3>Log a new action</h3>
+      <form id="scan-form" class="uk-grid-small" uk-grid>
+        <div class="uk-width-expand">
+          <input class="uk-input" type="text" placeholder="Paste / scan QR code here" required>
+        </div>
+        <div class="uk-width-auto">
+          <button class="uk-button uk-button-primary">Add EcoPoints</button>
+        </div>
+      </form>
+      <p class="uk-margin-small" id="scan-msg" hidden></p>
+    </div>
+  </section>
+
+  <!-- IMPACT CHART -->
+  <section id="impact" class="uk-section">
+    <div class="uk-container">
+      <h3 class="uk-heading-line"><span>Campus Impact</span></h3>
+      <canvas id="impactChart" height="120"></canvas>
+    </div>
+  </section>
+
+  <!-- LEADERBOARD -->
+  <section id="leader" class="uk-section uk-section-muted">
+    <div class="uk-container">
+      <h3 class="uk-heading-line"><span>Leaderboard</span></h3>
+      <table class="uk-table uk-table-divider uk-table-middle">
+        <thead>
+          <tr><th>Rank</th><th>Name</th><th>EcoPoints</th></tr>
+        </thead>
+        <tbody id="lb-body">
+          <tr><td>1</td><td>You</td><td>120</td></tr>
+          <tr><td>2</td><td>Leena R.</td><td>95</td></tr>
+          <tr><td>3</td><td>Aditya P.</td><td>88</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- REWARDS STORE -->
+  <section id="rewards" class="uk-section">
+    <div class="uk-container">
+      <h3 class="uk-heading-line"><span>Rewards Store</span></h3>
+      <div class="uk-grid-match uk-child-width-1-3@m" uk-grid>
+        <div>
+          <div class="uk-card uk-card-default uk-card-hover">
+            <div class="uk-card-media-top">
+              <img src="https://placehold.co/400x250?text=Free+Coffee" alt="">
+            </div>
+            <div class="uk-card-body">
+              <h4 class="uk-card-title">Barista Coffee</h4>
+              <p>Redeem 40 EcoPoints for any 12‑oz drink.</p>
+              <button class="uk-button uk-button-primary uk-width-1-1" disabled>40 Points</button>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="uk-card uk-card-default uk-card-hover">
+            <div class="uk-card-media-top">
+              <img src="https://placehold.co/400x250?text=Campus+Tote" alt="">
+            </div>
+            <div class="uk-card-body">
+              <h4 class="uk-card-title">Canvas Tote Bag</h4>
+              <p>Carry your books the sustainable way. 60 EcoPoints.</p>
+              <button class="uk-button uk-button-primary uk-width-1-1" disabled>60 Points</button>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="uk-card uk-card-default uk-card-hover">
+            <div class="uk-card-media-top">
+              <img src="https://placehold.co/400x250?text=Metal+Straw" alt="">
+            </div>
+            <div class="uk-card-body">
+              <h4 class="uk-card-title">Reusable Straw Pack</h4>
+              <p>Stainless‑steel straw + brush. 25 EcoPoints.</p>
+              <button class="uk-button uk-button-primary uk-width-1-1" disabled>25 Points</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="uk-section uk-section-small uk-text-center">
+    Built with <a href="https://getuikit.com" target="_blank" rel="noopener">UIkit</a> &middot;
+    Icons by UIkit &middot; Charts by <a href="https://www.chartjs.org" target="_blank" rel="noopener">Chart.js</a>
+  </footer>
+
+  <!-- JS Logic -->
+  <script>
+    // --- Impact chart ---
+    document.addEventListener("DOMContentLoaded", () => {
+      const ctx = document.getElementById("impactChart");
+      new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: ["Jan","Feb","Mar","Apr","May","Jun"],
+          datasets:[{
+            label:"Kg CO₂ saved",
+            data:[2,4,5,6,8,9],
+            borderWidth:1
+          }]
+        },
+        options:{responsive:true,plugins:{legend:{display:false}}}
+      });
+    });
+    // --- Fake scan handler ---
+    document.getElementById("scan-form").addEventListener("submit", e=>{
+      e.preventDefault();
+      const input = e.target.querySelector("input");
+      const code  = input.value.trim();
+      if(!code) return;
+      const ptsEl = document.getElementById("points");
+      const newPts = +ptsEl.textContent + 5;  // +5 per scan
+      ptsEl.textContent = newPts;
+      document.getElementById("scan-msg").hidden=false;
+      document.getElementById("scan-msg").textContent=`🎉 You earned 5 points for action "${code}"`;
+      input.value="";
+    });
+  </script>
+  <!-- ABOUT SECTION -->
+<section id="about" class="uk-section">
+    <div class="uk-container">
+      <div class="uk-grid-large uk-flex-middle" uk-grid>
+        <!-- Left: photo -->
+        <div class="uk-width-1-2@s">
+          <img
+            src="assets/ecovendingreal.png"
+            alt="Full‑scale Eco‑Vending Machine concept"
+            uk-img
+            class="uk-border-rounded">
+        </div>
+  
+        <!-- Right: mission -->
+        <div class="uk-width-1-2@s">
+          <h3 class="uk-heading-line"><span>Our Mission</span></h3>
+          <p class="uk-text-lead">
+            We’re making <strong>sustainable choices</strong> as effortless as grabbing a disposable.
+            By pairing a physical <em>Eco‑Vending Machine</em> with the
+            <strong>EcoPoints Hub</strong>, students earn rewards every time they borrow,
+            return, or refill — creating a closed‑loop system that keeps single‑use
+            plastics out of campus waste streams.
+          </p>
+          <ul class="uk-list uk-list-bullet">
+            <li>Borrow reusable cups, cutlery, totes &amp; more — free of charge.</li>
+            <li>Scan the QR to track impact and earn EcoPoints.</li>
+            <li>Redeem points for coffee, merch, or event perks while seeing real‑time
+                CO₂ and plastic savings.</li>
+          </ul>
+          <p>
+            Together, we empower ASU to <strong>“pick sustainability over plastic”</strong>
+            every single day.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+</body>
+</html>
