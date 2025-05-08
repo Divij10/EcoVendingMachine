@@ -1,0 +1,114 @@
+/* === ECO‑VENDING PROTOTYPE COLOURS =================================== */
+:root {
+  --lime:   #bff240;   /* body + card backgrounds              */
+  --teal:   #008c9e;   /* navbar + headings + borders          */
+  --orange: #ff7b2e;   /* call‑to‑action buttons / highlights  */
+  --purple: #c883ff;   /* accent (badges etc.)                 */
+  --paper:  #f1f5f3;   /* page background                      */
+}
+
+/* page background ---------------------------------------------------- */
+body {
+  background: var(--paper) !important;
+}
+
+/* navbar ------------------------------------------------------------- */
+.uk-navbar-container {
+  background: var(--teal) !important;
+}
+
+.uk-navbar-container .uk-navbar-nav>li>a,
+.uk-navbar-container .uk-logo {
+  color: #fff !important;            /* visible on teal */
+}
+
+.uk-navbar-item:hover,
+.uk-navbar-nav>li>a:hover {
+  color: var(--lime) !important;     /* fun hover tint  */
+}
+
+/* primary buttons ---------------------------------------------------- */
+.uk-button-primary {
+  background: var(--orange) !important;
+  border: none !important;
+  color: #fff !important;
+}
+
+.uk-button-primary:hover {
+  filter: brightness(1.1);
+}
+
+/* cards -------------------------------------------------------------- */
+.uk-card-default,
+.uk-card-primary {
+  background: var(--lime) !important;
+  color: #000 !important;
+  border: 2px solid var(--teal) !important;
+}
+
+/* Reward card image uniformity --------------------------------------- */
+.uk-card-media-top {
+  width: 100%;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f1f1;
+  overflow: hidden;
+}
+.uk-card-media-top img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* muted sections (eg. leaderboard bg) -------------------------------- */
+.uk-section-muted {
+  background: rgba(0,140,158,.08) !important;
+}
+
+/* inputs focus ring -------------------------------------------------- */
+#scan-form input:focus {
+  border-color: var(--teal) !important;
+  box-shadow: 0 0 0 3px rgba(0,140,158,.35);
+}
+
+/* misc accents ------------------------------------------------------- */
+#points, #co2, #plastics {
+  color: var(--orange) !important;
+}
+
+::selection {
+  background: var(--purple);
+  color: #000;
+}
+
+/* QR Scanner */
+#qr-reader {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+/* Toast notifications */
+.toast-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+}
+
+.toast {
+  background: var(--teal);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 4px;
+  margin-top: 10px;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+} 
